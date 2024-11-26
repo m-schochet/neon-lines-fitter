@@ -161,7 +161,7 @@ def solve_LHIRES_wavelength(neon_image:str, micrometer_setting:float, view_statu
     # grab the files
     calibration_file = neon_image
     file_list_length = len(neon_image)
-    first_file_header = fits.getheader(calibration_files)
+    first_file_header = fits.getheader(calibration_file)
     all_image_data = fits.getdata(calibration_file)np.zeros(1, (first_file_header['NAXIS2'], first_file_header['NAXIS1']))
     averaged_calibration_data = all_image_data
 
