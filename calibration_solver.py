@@ -159,20 +159,12 @@ def solve_LHIRES_wavelength(neon_image:str, micrometer_setting:float, view_statu
     # potential addition - make this also take in flats, biases, and darks, subtract those out of calibration data
     
     # grab the files
-    calibration_files = neon_image
+    calibration_file = neon_image
     file_list_length = len(neon_image)
-
-    # initialize an array for the single neon image
     first_file_header = fits.getheader(calibration_files)
-    all_image_data = np.zeros((len(calibration_files), first_file_header['NAXIS2'], first_file_header['NAXIS1']))
-    
-    # get the data!
-    for i, file in enumerate(calibration_files):
-        all_image_data[i] = fits.getdata(file)
-    
-    # take the average of the data - I assume the calibration data is all the same exposure time and this is a reasonable mean to take
-    averaged_calibration_data = np.mean(all_image_data,0)
-    
+    all_image_data = fits.getdata(calibration_file)np.zeros(1, (first_file_header['NAXIS2'], first_file_header['NAXIS1']))
+    averaged_calibration_data = all_image_data
+
     # look at data
     if(view_plots):
         plt.imshow(averaged_calibration_data, cmap='gray')
