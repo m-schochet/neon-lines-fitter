@@ -1,7 +1,10 @@
 import pylab as pl
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import numpy as np
+import glob
+import warnings
+import matplotlib.pyplot as plt
+
+from matplotlib.colors import LogNorm
 from numpy import genfromtxt
 from scipy.signal import savgol_filter
 from astropy.io import fits
@@ -10,8 +13,7 @@ from astropy.modeling.polynomial import Polynomial1D
 from astropy.modeling.fitting import LinearLSQFitter
 from astropy.modeling.models import Linear1D
 from astroquery.nist import Nist
-import glob
-import warnings
+
 plt.rcParams['image.origin'] = 'lower'
 plt.matplotlib.style.use('dark_background')
 
@@ -22,8 +24,8 @@ def find_maxima(array):
     local_max_inds, = np.where(np.diff(slope[not_flat])==-2)
     return local_max_inds + 1
 
+# this is designed for flattened arrays.
 def check_array_closeness(array1:np.ndarray, array2:np.ndarray, seperation_skepticism:int):
-    # this is designed for flattened arrays.
     array1 = array1.flatten()
     length_1 = np.size(array1)
     array2 = array2.flatten()
@@ -39,8 +41,8 @@ def check_array_closeness(array1:np.ndarray, array2:np.ndarray, seperation_skept
     else:
         return False
 
+#like the above code, but returns indices of the second array that are closest to the first array
 def pick_close_indices(array1:np.ndarray, array2:np.ndarray):
-    #like the above code, but returns indices of the second array that are closest to the first array
     array1 = array1.flatten()
     length_1 = np.size(array1)
     array2 = array2.flatten()
@@ -52,6 +54,7 @@ def pick_close_indices(array1:np.ndarray, array2:np.ndarray):
     return np.array(inds)
     
 def check_lineups(data_array, guesspix, appx_wavelength, guess_depth = 1, csv_name='bright_neon_lines.csv', supervised = False, linecount_leeway = 4, pixel_seperation_skepticism = 150):
+   
     # I need the closest to central guess we have.
     data_width = np.shape(data_array)[1]
     closest_guess_to_center = guesspix[np.argmin(np.abs(guesspix-data_width/2))]
@@ -149,16 +152,21 @@ def guess_pixel_wavelengths(data_array, micrometer_setting, reasonable_line_sepa
     # give back a tuple of findings
     return {'guesspix':guesspix, 'guess_wl':guess_wl, 'bright_row':bright_strip}
 
-def solve_LHIRES_wavelength(calibration_data_folder:str, micrometer_setting:float, view_status=True, view_plots=True, polynomial_order = 2, relative_intensity_cutoff = 1000, guesspix = None, guess_wl = None):
+def solve_LHIRES_wavelength(neon_image:str, micrometer_setting:float, view_status=True, view_plots=True, polynomial_order = 2, relative_intensity_cutoff = 1000, guesspix = None, guess_wl = None):
     
     ## Step Zero: Load and Look at Data
     # potential addition - make this also take in flats, biases, and darks, subtract those out of calibration data
     
     # grab the files
     calibration_files = glob.glob(calibration_data_folder + "/*.fit")
+    file_list_length = len(calibration_files)
+
     
     # initialize an array for the size of all the data
-    first_file_header = fits.getheader(calibration_files[0])
+    if(file_list_length<=1):
+        first_file_header = fits.getheader(calibration_files)
+    else:
+        first_file_header = fits.getheader(calibration_files[0])
     all_image_data = np.zeros((len(calibration_files), first_file_header['NAXIS2'], first_file_header['NAXIS1']))
     
     # get the data!
