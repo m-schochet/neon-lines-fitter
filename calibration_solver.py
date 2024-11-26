@@ -152,21 +152,18 @@ def guess_pixel_wavelengths(data_array, micrometer_setting, reasonable_line_sepa
     # give back a tuple of findings
     return {'guesspix':guesspix, 'guess_wl':guess_wl, 'bright_row':bright_strip}
 
+#This function has been changed to only solve for the wavelength given a single neon image
 def solve_LHIRES_wavelength(neon_image:str, micrometer_setting:float, view_status=True, view_plots=True, polynomial_order = 2, relative_intensity_cutoff = 1000, guesspix = None, guess_wl = None):
     
     ## Step Zero: Load and Look at Data
     # potential addition - make this also take in flats, biases, and darks, subtract those out of calibration data
     
     # grab the files
-    calibration_files = glob.glob(calibration_data_folder + "/*.fit")
-    file_list_length = len(calibration_files)
+    calibration_files = neon_image
+    file_list_length = len(neon_image)
 
-    
-    # initialize an array for the size of all the data
-    if(file_list_length<=1):
-        first_file_header = fits.getheader(calibration_files)
-    else:
-        first_file_header = fits.getheader(calibration_files[0])
+    # initialize an array for the single neon image
+    first_file_header = fits.getheader(calibration_files)
     all_image_data = np.zeros((len(calibration_files), first_file_header['NAXIS2'], first_file_header['NAXIS1']))
     
     # get the data!
